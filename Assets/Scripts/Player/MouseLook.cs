@@ -14,6 +14,9 @@ public class MouseLook : MonoBehaviour
 
     [Header("Crouch Settings")]
     [SerializeField] private float crouchCameraOffset = -0.5f;
+    [SerializeField] private float crouchLerpSpeed = 10f;
+    private float targetBaseY;
+
 
     private float xRotation;
     //starting Y position of the camera
@@ -27,6 +30,7 @@ public class MouseLook : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
 
         defaultY = cameraTransform.localPosition.y;
+        targetBaseY = defaultY;
         baseY = defaultY;
 
         playerMovement.OnPlayerMove += PlayerMovement_BobWhileMoving;
@@ -36,6 +40,8 @@ public class MouseLook : MonoBehaviour
     void Update()
     {
         HandleMouseLook();
+        UpdateCrouchLerp();
+
     }
 
     //Mouse look
@@ -68,6 +74,7 @@ public class MouseLook : MonoBehaviour
         {
             bobTimer += Time.deltaTime * bobSpeed;
             float yOffset = Mathf.Sin(bobTimer) * bobAmount;
+            //lowkey setting Y for all funcs right here
             SetCameraY(baseY + yOffset);
         }
         else
@@ -79,6 +86,7 @@ public class MouseLook : MonoBehaviour
     private void ResetBob()
     {
         bobTimer = 0f;
+        //lowkey setting Y for all funcs right here
         SetCameraY(baseY);
     }
 
@@ -87,12 +95,15 @@ public class MouseLook : MonoBehaviour
     {
         bobTimer = 0f;
 
-        baseY = e.isCrouching
-            ? defaultY + crouchCameraOffset
-            : defaultY;
-
-        SetCameraY(baseY);
+        targetBaseY = e.isCrouching ? defaultY + crouchCameraOffset : defaultY;
     }
+
+
+    private void UpdateCrouchLerp()
+    {
+        baseY = Mathf.Lerp(baseY, targetBaseY, Time.deltaTime * crouchLerpSpeed);
+    }
+
 
     //Camera support func
     private void SetCameraY(float y)

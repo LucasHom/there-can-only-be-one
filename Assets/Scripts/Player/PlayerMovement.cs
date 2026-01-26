@@ -96,6 +96,7 @@ public class PlayerMovement : MonoBehaviour
         isCrouching = true;
         //controller.height = crouchHeight;
         //controller.center = Vector3.up * crouchHeight / 2f;
+        speed /= 2f;
 
         OnCrouchToggled?.Invoke(this, new OnCrouchEventArgs
         {
@@ -110,6 +111,7 @@ public class PlayerMovement : MonoBehaviour
         isCrouching = false;
         //controller.height = standingHeight;
         //controller.center = Vector3.up * standingHeight / 2f;
+        speed *= 2f;
 
         OnCrouchToggled?.Invoke(this, new OnCrouchEventArgs
         {
