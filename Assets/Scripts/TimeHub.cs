@@ -8,7 +8,7 @@ public class TimeHub : MonoBehaviour
 
     private int time;
     public int START_TIME = 1000000;
-    public float DEFAULT_FIXED_TIME = .1f;
+    public int FIXED_UPDATE_RATE = 10;
 
 
     void Awake()
@@ -23,7 +23,7 @@ public class TimeHub : MonoBehaviour
     void Start()
     {
         time = START_TIME;
-        Time.fixedDeltaTime = DEFAULT_FIXED_TIME;
+        Time.fixedDeltaTime = (1/ (float) FIXED_UPDATE_RATE);
 
     }
 
@@ -46,16 +46,18 @@ public class TimeHub : MonoBehaviour
     }
 
     public void timeForewards(int newTime){
+        newTime*=FIXED_UPDATE_RATE;
         time += newTime;
     }
 
     public void timeBackwards(int newTime){
+        newTime*=FIXED_UPDATE_RATE;
         time -= newTime;
     }
 
     void printTime(int time) {
         int sec, min, hour, day;
-        time = (int) (time*DEFAULT_FIXED_TIME);
+        time = (int) (time/FIXED_UPDATE_RATE);
         //print(time);
 
         day = time/(60*60*24);
