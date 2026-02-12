@@ -13,6 +13,8 @@ public class Door : StatefulInteractable
 
     private static readonly string StateKey = "DoorState";
 
+    public UnityEvent OnInitialized;
+
     public UnityEvent OnOpen;
     public UnityEvent OnClose;
     public UnityEvent OnLock;
@@ -20,10 +22,14 @@ public class Door : StatefulInteractable
 
     public DoorState State { get; private set; }
 
+    [SerializeField] private Interactable interactable;
     [SerializeField] private DoorState initialState = DoorState.Closed;
+    [SerializeField] private string keyItemName = "Key";
 
-    void Awake()
+    void Start()
     {
+        OnInitialized ??= new UnityEvent();
+
         OnOpen ??= new UnityEvent();
         OnClose ??= new UnityEvent();
         OnLock ??= new UnityEvent();
@@ -32,6 +38,10 @@ public class Door : StatefulInteractable
         State = initialState;
 
         StateRegistry.Instance.Register(this);
+
+        interactable.OnInteract.AddListener(TryToggleWithKey);
+
+        OnInitialized.Invoke();
     }
 
     public override Dictionary<string, object> GetState()
@@ -73,12 +83,30 @@ public class Door : StatefulInteractable
         OnLock.Invoke();
     }
 
+    public void TryLockWithKey(GameObject interactor)
+    {
+        Inventory inventory = interactor.GetComponent<Inventory>();
+        if (inventory != null && inventory.HasItem(keyItemName))
+        {
+            TryLock();
+        }
+    }
+
     public void TryUnlock()
     {
         if (State != DoorState.Locked)
             return;
         State = DoorState.Closed;
         OnUnlock.Invoke();
+    }
+
+    public void TryUnlockWithKey(GameObject interactor)
+    {
+        Inventory inventory = interactor.GetComponent<Inventory>();
+        if (inventory != null && inventory.HasItem(keyItemName))
+        {
+            TryUnlock();
+        }
     }
 
     public void TryToggle()
@@ -90,6 +118,22 @@ public class Door : StatefulInteractable
         else if (State == DoorState.Closed)
         {
             TryOpen();
+        }
+    }
+
+    public void TryToggleWithKey(GameObject interactor)
+    {
+        if (State == DoorState.Open)
+        {
+            TryClose();
+        }
+        else if (State == DoorState.Closed)
+        {
+            TryOpen();
+        }
+        else if (State == DoorState.Locked)
+        {
+            TryUnlockWithKey(interactor);
         }
     }
 }
