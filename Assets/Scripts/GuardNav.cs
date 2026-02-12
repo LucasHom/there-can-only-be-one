@@ -9,8 +9,10 @@ public class GuardNav : MonoBehaviour
 
     bool isInAngle, isInRange, isNotHidden;
     public GameObject Player;
-    public float DetectRange = 10;
-    public float DetectAngle = 45;
+    public float DetectRange = 100;
+    public float DetectAngle = 60;
+
+    bool isChasing = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -32,32 +34,72 @@ public class GuardNav : MonoBehaviour
         }
 
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, (Player.transform.position - transform.position), out hit, Mathf.Infinity))
-        {
-            if (hit.transform == Player.transform)
-            {
+        if (Physics.Raycast(transform.position, (Player.transform.position - transform.position), out hit, Mathf.Infinity)) 
+        { 
+            if (hit.transform == Player.transform) 
+            { 
                 isNotHidden = true;
             }
         }
 
-        Vector3 side1 = Player.transform.position - transform.position;
-        Vector3 side2 = transform.forward;
-        float angle = Vector3.SignedAngle(side1, side2, Vector3.up);
-        if (angle < DetectAngle && angle < (-1 * DetectAngle))
+        float angle = Vector3.Angle(transform.forward, Player.transform.position - transform.position);
+        if (angle < DetectAngle)
         {
             isInAngle = true;
         }
 
-        if (!isInAngle || !isInRange || !isNotHidden)
+        if (isInAngle && isInRange && isNotHidden)
+        {
+            isChasing = true;
+        } else
+        {
+            isChasing = false;
+        }
+
+        if (isChasing)
+        {
+            agent.SetDestination(Player.transform.position);
+
+            // stop chasing if player is VERY far
+            if (Vector3.Distance(transform.position, Player.transform.position) > DetectRange * 1.5f)
+            {
+                isChasing = false;
+            }
+        }
+        else
         {
             if (!agent.pathPending && agent.remainingDistance < 3.0f)
             {
                 currentPointIndex = (currentPointIndex + 1) % patrolPoints.Length;
                 agent.SetDestination(patrolPoints[currentPointIndex].position);
             }
-        } else
+        }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = new Color(1, 1, 0, 0.2f);
+
+        Vector3 origin = transform.position;
+        int rayCount = 30;
+
+        float halfAngle = DetectAngle;
+        float angleStep = (halfAngle * 2) / rayCount;
+
+        Vector3 previousPoint = origin;
+
+        for (int i = 0; i <= rayCount; i++)
         {
-            agent.SetDestination(Player.transform.position);
+            float currentAngle = -halfAngle + angleStep * i;
+            Vector3 direction = Quaternion.Euler(0, currentAngle, 0) * transform.forward;
+            Vector3 currentPoint = origin + direction * DetectRange;
+
+            Gizmos.DrawLine(origin, currentPoint);
+
+            if (i > 0)
+                Gizmos.DrawLine(previousPoint, currentPoint);
+
+            previousPoint = currentPoint;
         }
     }
 }
