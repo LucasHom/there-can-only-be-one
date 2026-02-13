@@ -36,9 +36,9 @@ public class TimeHub : MonoBehaviour
 
     void FixedUpdate()
     {
-        time++;
+        //time++;
         //print(time);
-        printTime(time);
+        //printTime(time);
     }
 
     public int getTime(){
@@ -55,7 +55,7 @@ public class TimeHub : MonoBehaviour
         time -= newTime;
     }
 
-    void printTime(int time) {
+    public void printTime(int time) {
         int sec, min, hour, day;
         time = (int) (time/FIXED_UPDATE_RATE);
         //print(time);

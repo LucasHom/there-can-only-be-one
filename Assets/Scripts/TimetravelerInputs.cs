@@ -5,8 +5,13 @@ using UnityEngine.InputSystem;
 public class TimetravelerInputs : MonoBehaviour
 {
 
-    private InputAction chargeTT;
+    public float chargeMod = 250f;
+
+    private InputAction chargeTTAction;
     private bool chargingTT;
+    private float scrollCharge;
+    
+    private float currCharge;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -16,41 +21,55 @@ public class TimetravelerInputs : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        scrollCharge = Mouse.current.scroll.ReadValue().y;
         
     }
 
     void FixedUpdate()
     {
-        
+        if (chargingTT)
+        {
+            
+            currCharge += (chargeMod * scrollCharge);
+            print(currCharge);
+            
+        } else
+        {
+            TimeHub.Instance.printTime(TimeHub.Instance.getTime());
+        }
     }
 
     void OnEnable()
     {
-        chargeTT = InputSystem.actions.FindAction("Timetravel");
+        chargeTTAction = InputSystem.actions.FindAction("Timetravel");
+        chargeTTAction.Enable();
+        chargeTTAction.started += OnTimetravelStarted;
+        chargeTTAction.canceled += OnTimetravelCanceled;
 
-        chargeTT.Enable();
-        chargeTT.started += OnTimetravelStarted;
+        // chargeTTScroll = InputSystem.actions.FindAction("ChargeTimetravel");
+        // chargeTTScroll.Enable();
+
     }
 
-    void OnDissable()
+    void OnDisable()
     {
-        chargeTT.Disable();
+        chargeTTAction.Disable();
+        // chargeTTScroll.Disable();
     }
 
     void OnTimetravelStarted(InputAction.CallbackContext context)
     {
-        TimeHub.Instance.timeForewards(100);
+        chargingTT = true;
 
+    }
 
-        // if(context.performed) // the key is pressed
-        // {
-        //     TimeHub.Instance.timeForewards(100);
-        // }
-        // if(context.canceled) //the key has been released
-        // {
-        //     TimeHub.Instance.timeBackwards(100);
-        // }
+    void OnTimetravelCanceled(InputAction.CallbackContext context)
+    {
+        
+        TimeHub.Instance.timeForewards((int) currCharge);
+        chargingTT = false;
+        currCharge = 0;
+        
     }
 
     
